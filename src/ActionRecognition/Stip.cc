@@ -19,12 +19,20 @@ Stip::Stip(){
 
   //0.3 for sobel 0.9 for sepderivatives
   //works well with derivative Lt being just the difference
-  m_sigma_local_spacial=0.3f;
-  m_sigma_local_temporal=0.9f;
+  // m_sigma_local_spacial=0.3f;
+  // m_sigma_local_temporal=0.9f;
+
+
 
   //works well with derivative Lt being the sobel
   m_sigma_local_spacial=1.0f;
   m_sigma_local_temporal=1.5f;
+
+
+
+  //Alexander Richard's settings
+  m_sigma_local_spacial=1.0f;
+  m_sigma_local_temporal=2.0f;
 }
 
 // empty destructor
@@ -36,11 +44,12 @@ void Stip::run(){
 
   // m_video_path= "../experiments/videos/dummy.avi";
   // m_video_path= "../experiments/videos/LONGESTYARD_walk_f_nm_np1_fr_med_6.avi";
-  // m_video_path= "../experiments/videos/Torwarttraining_2_(_sterreich)_catch_f_cm_np1_ba_goo_1.avi";
+  m_video_path= "../experiments/videos/Torwarttraining_2_(_sterreich)_catch_f_cm_np1_ba_goo_1.avi";
   // m_video_path= "../experiments/videos/H_I_I_T__Swamis_stairs_with_Max_Wettstein_featuring_Donna_Wettstein_climb_stairs_f_cm_np1_ba_med_4.avi";
   // m_video_path= "../experiments/videos/likebeckam_run_f_cm_np1_fr_med_5.avi";
   // m_video_path = "../experiments/videos/Veoh_Alpha_Dog_1_walk_f_nm_np1_ri_med_24.avi";
   // m_video_path= "../experiments/videos/Ballfangen_catch_u_cm_np1_fr_goo_0.avi";
+  // m_video_path= "../experiments/videos/Clay_sBasketballSkillz_shoot_ball_f_nm_np1_ba_med_7.avi";
 
   std::vector<cv::Mat> Lx,Ly,Lt;
   std::vector<cv::Mat> Lx2,Ly2,Lt2,LxLy,LxLt,LyLt;
@@ -52,22 +61,6 @@ void Stip::run(){
   gaussian_smooth(m_st_volume, m_st_volume, m_sigma_local_spacial, m_sigma_local_temporal);
   compute_derivatives(m_st_volume, Lx,Ly,Lt);
   compute_harris_coefficients(Lx,Ly,Lt, Lx2,Ly2,Lt2,LxLy,LxLt,LyLt);
-
-
-  // // //Show volume
-  // for (size_t i = 0; i < Lt.size(); i++) {
-  //   cv::imshow("window", mat2gray(Lt[i]));
-  //   cv::waitKey(0);
-  //   char key = cvWaitKey(30);
-  //       if (key == 27) // ESC
-  //           break;
-  // }
-
-
-
-  //for dummy video
-  // float m_sigma_integration_spacial=4.0f;
-  // float m_sigma_integration_temporal=2.0f;
 
   //for  Torwarttraining_2_(_sterreich)_catch_f_cm_np1_ba_goo_1
   float sigma_integration_spacial=5.0f;
@@ -88,23 +81,6 @@ void Stip::run(){
 
       compute_harris_responses(harris_responses,Lx2_s,Ly2_s,Lt2_s,LxLy_s,LxLt_s,LyLt_s);
 
-
-      // // //Show volume
-      // for (size_t i = 0; i < harris_responses.size(); i++) {
-      //   cv::imshow("window", mat2gray(harris_responses[i]));
-      //   cv::waitKey(0);
-      //   char key = cvWaitKey(30);
-      //       if (key == 27) // ESC
-      //           break;
-      // }
-
-
-      // int start_idx;
-      // if (interest_points.empty()){
-      //   start_idx=0;
-      // }else{
-      //   start_idx=interest_points.size();
-      // }
       int start_idx=interest_points.size();
 
       compute_local_maxima(harris_responses,interest_points);
@@ -128,6 +104,59 @@ void Stip::run(){
 
 
 
+  //---------------DESCRIPTORS---------------------------
+  std::vector<cv::Mat> grad_mags;
+  std::vector<cv::Mat> grad_orientations;
+  std::vector<cv::Mat> flow_mags;
+  std::vector<cv::Mat> flow_orientations;
+
+
+  //TODO Use Scharr insted of sobel void Scharr(InputArray src, OutputArray dst, int ddepth, int dx, int dy, double scale=1, double delta=0, int borderType=BORDER_DEFAULT )
+
+  //TODO
+  /*
+  Mat grad_x, grad_y;
+    Scharr(gray, grad_x, CV_32FC1, 1, 0);
+    Scharr(gray, grad_y, CV_32FC1, 0, 1);
+    // 4. calculate gradient magnitude and direction
+    Mat magnitude, direction;
+    bool useDegree = true;    // use degree or rad
+    // the range of the direction is [0,2pi) or [0, 360)
+    cartToPolar(grad_x, grad_y, magnitude, direction, useDegree);*/
+
+
+  //TODO
+  /*
+  A Mapping of Type to Numbers in OpenCV
+
+ C1	C2	C3	C4
+CV_8U	0	8	16	24
+CV_8S	1	9	17	25
+CV_16U	2	10	18	26
+CV_16S	3	11	19	27
+CV_32S	4	12	20	28
+CV_32F	5	13	21	29
+CV_64F	6	14	22	30*/
+
+  //TODO interpolation
+  /*
+  H(x1) =h(x1) +w*(1- (x-x1)/b  )
+  H(x2) =h(x1) +w*((x-x1)/b  )*/
+
+
+
+
+  compute_grad_orientations_magnitudes(Lx,Ly, grad_mags, grad_orientations );
+  compute_flow(m_st_volume, flow_mags, flow_orientations );
+  compute_descriptors(interest_points, grad_mags, grad_orientations, flow_mags, flow_orientations);
+
+
+
+
+
+
+
+
   // // //Show volume
   // for (size_t i = 0; i < harris_responses.size(); i++) {
   //   cv::imshow("window", mat2gray(harris_responses[i]));
@@ -138,22 +167,22 @@ void Stip::run(){
   // }
 
 
-  // //Show volume with interest_points
-  while (true)
-  for (size_t i = 0; i < harris_responses.size(); i++) {
-    // double min, max;
-    // cv::minMaxLoc(harris_responses[i], &min, &max);
-    // std::cout << "min max is " << min << " " << max << '\n';
-    cv::Mat frame;
-    frame=mat2gray(m_st_volume[i]);
-    cv::cvtColor(frame, frame, CV_GRAY2BGR);
-    draw_interest_points(frame,interest_points,i);
-    cv::imshow("window", frame);
-    // cv::waitKey(0);
-    char key = cvWaitKey(50);
-        if (key == 27) // ESC
-            break;
-  }
+  // // //Show volume with interest_points
+  // while (true)
+  // for (size_t i = 0; i < harris_responses.size(); i++) {
+  //   // double min, max;
+  //   // cv::minMaxLoc(harris_responses[i], &min, &max);
+  //   // std::cout << "min max is " << min << " " << max << '\n';
+  //   cv::Mat frame;
+  //   frame=mat2gray(m_st_volume[i]);
+  //   cv::cvtColor(frame, frame, CV_GRAY2BGR);
+  //   draw_interest_points(frame,interest_points,i);
+  //   cv::imshow("window", frame);
+  //   // cv::waitKey(0);
+  //   char key = cvWaitKey(50);
+  //       if (key == 27) // ESC
+  //           break;
+  // }
 
 
   // // //Show blankc with interest_points
@@ -244,8 +273,6 @@ cv::Mat Stip::mat2gray(const cv::Mat& src){
 
     return dst;
 }
-
-
 
 void Stip::create_spacial_temporal_volume(std::vector<cv::Mat>& m_st_volume, std::string m_video_path){
   //read the file
@@ -349,6 +376,9 @@ void Stip::compute_derivatives(std::vector<cv::Mat>& m_st_volume, std::vector<cv
     cv::Sobel( m_st_volume[i], Ix, CV_32F, 1, 0, 3, 1, 0, cv::BORDER_DEFAULT);
     cv::Sobel( m_st_volume[i], Iy, CV_32F, 0, 1, 3, 1, 0, cv::BORDER_DEFAULT);
 
+    // Scharr(m_st_volume[i], Ix, CV_32FC1, 1, 0);
+    // Scharr(m_st_volume[i], Iy, CV_32FC1, 0, 1);
+
     // //Maybe convolving with my own kernel could be better because then the derivatives will have the same range
     // cv::Mat ker_sobel = cv::Mat::zeros( 3, 1, CV_32F );
     // ker_sobel.at<float>(0)=-1;
@@ -389,6 +419,8 @@ void Stip::compute_derivatives(std::vector<cv::Mat>& m_st_volume, std::vector<cv
 
 
     cv::Sobel( slice, slice, CV_32F, 1, 0, 3, 1, 0, cv::BORDER_DEFAULT);
+    // Scharr(slice, slice, CV_32FC1, 1, 0);
+
 
     // //show slice
     // cv::imshow("window", mat2gray(slice));
@@ -562,6 +594,7 @@ void Stip::compute_local_maxima(std::vector<cv::Mat>&  harris_responses,   std::
               //   continue;
               // }
 
+              //with sobel it works pretty good
               if (harris_responses[t].at<float>(y,x)<=1e-4){
                 continue;
               }
@@ -688,16 +721,11 @@ void Stip::non_max_supress(std::vector<interest_point>& interest_points, int max
   }
 
 
-
-
-
   interest_points=ip_complete_supressed;
-
-
 
 }
 
-
+/*Adapted from https://github.com/Nuzhny007/Non-Maximum-Suppression/blob/master/main.cpp*/
 void Stip::nms( const std::vector<interest_point>& srcRects, std::vector<interest_point>& resRects, float thresh){
 	resRects.clear();
 
@@ -745,4 +773,224 @@ void Stip::nms( const std::vector<interest_point>& srcRects, std::vector<interes
 			}
 		}
 	}
+}
+
+
+void Stip::compute_grad_orientations_magnitudes(std::vector<cv::Mat> Lx, std::vector<cv::Mat> Ly, std::vector<cv::Mat>& grad_mags, std::vector<cv::Mat>& grad_orientations ){
+  std::cout << "compute_grad_orientations_magnitudes" << '\n';
+
+  bool useDegree = true;    // use degree or rad
+  grad_mags.resize(Lx.size());
+  grad_orientations.resize(Lx.size());
+
+  for (size_t i = 0; i < Lx.size(); i++) {
+    // the range of the direction is [0,2pi) or [0, 360)
+    cv::cartToPolar(Lx[i], Ly[i], grad_mags[i], grad_orientations[i], useDegree);
+  }
+
+
+}
+
+void Stip::compute_flow(std::vector<cv::Mat> m_st_volume, std::vector<cv::Mat>& flow_mags, std::vector<cv::Mat>& flow_orientations ){
+  std::cout << "compute flow" << '\n';
+
+  flow_mags.resize(m_st_volume.size());
+  flow_orientations.resize(m_st_volume.size());
+
+  cv::Mat flow;
+  cv::Mat flow_xy[2];
+
+  for (size_t i = 0; i < m_st_volume.size(); i++) {
+
+    int next_idx=i+1;
+    if (next_idx == m_st_volume.size() ){
+      next_idx=m_st_volume.size()-1;
+    }
+
+
+    cv::calcOpticalFlowFarneback(m_st_volume[i], m_st_volume[next_idx], flow, 0.4, 1, 12, 2, 8, 1.2, 0);
+    cv::split(flow, flow_xy);
+    //calculate angle and magnitude
+    cv::Mat magnitude, angle;
+    cartToPolar(flow_xy[0], flow_xy[1], flow_mags[i], flow_orientations[i], true);
+
+  }
+
+}
+
+void Stip::compute_descriptors(std::vector<interest_point>& interest_points, std::vector<cv::Mat> grad_mags, std::vector<cv::Mat> grad_orientations, std::vector<cv::Mat> flow_mags, std::vector<cv::Mat> flow_orientations){
+
+  std::cout << "compute_descriptor" << '\n';
+
+
+  //TODO put the k back to 9
+  int k=2;
+  int nbins_hog=8;
+  float hist_range=360.0f;
+
+  //TODO read these values out of a struct called ST_vol or something similar
+  int st_max_x=grad_orientations[0].cols;
+  int st_max_y=grad_orientations[0].rows;
+  int st_max_t=grad_orientations.size();
+
+  std::cout << "st size is " << st_max_x << " " << st_max_y << " " << st_max_t << '\n';
+
+  int cell_per_vol_x=3;
+  int cell_per_vol_y=3;
+  int cell_per_vol_t=2;
+
+
+  for (size_t i = 0; i < interest_points.size(); i++) {
+
+
+    //TODO I'm not sure if they are sigmas of standard deviations
+    int vol_x_size=2*k*interest_points[i].sigma_spacial;
+    int vol_y_size=2*k*interest_points[i].sigma_spacial;
+    int vol_t_size=2*k*interest_points[i].sigma_temporal;
+
+    int cell_size_x=std::ceil(vol_x_size/(float)cell_per_vol_x);
+    int cell_size_y=std::ceil(vol_y_size/(float)cell_per_vol_y);
+    int cell_size_t=std::ceil(vol_t_size/(float)cell_per_vol_t);
+
+    std::cout << "volume size " << vol_x_size << " " << vol_y_size << " " << vol_t_size << '\n';
+    std::cout << "cell size " << cell_size_x << " " << cell_size_y << " " << cell_size_t << '\n';
+
+
+    //Borders
+    if (interest_points[i].x + vol_x_size/2 > st_max_x  || interest_points[i].x - vol_x_size/2 < 0 ){
+      std::cout << "outise x" << '\n';
+      continue;
+    }
+    if (interest_points[i].y + vol_y_size/2 > st_max_y  || interest_points[i].y - vol_y_size/2 < 0 ){
+      std::cout << "outside y" << '\n';
+      continue;
+    }
+    if (interest_points[i].t + vol_t_size/2 > st_max_t  || interest_points[i].t - vol_t_size/2 < 0 ){
+      std::cout << "outside t" << '\n';
+      continue;
+    }
+
+
+    std::cout << "points is insize the valid area" << '\n';
+
+    //make a vol of histograms
+    //TODO volume should be a templated class which will be internally represented as a 3-times nested std::vector
+    // std::vector<std::vector<std::vector<Histogram > > > hist_hog_vol;
+    //
+    // hist_hog_vol.resize(cell_per_vol_t);
+    // for (size_t t = 0; t < cell_per_vol_t; t++) {
+    //   hist_hog_vol[t].resize(cell_per_vol_y);
+    //   for (size_t y = 0; y < cell_per_vol_y; y++) {
+    //     hist_hog_vol[t][y].resize(cell_per_vol_x);
+    //
+    //     for (size_t x = 0; x < cell_per_vol_x; x++) {
+    //       // std::cout << "created cell " << t << " " << y << " " << x  << '\n';
+    //       hist_hog_vol[t][y][x]=Histogram(nbins_hog, hist_range);
+    //     }
+    //
+    //   }
+    // }
+    utils::Array<Histogram, 3> hist_hog_vol;
+    size_t size_hog_vol [3]= { cell_per_vol_t, cell_per_vol_y, cell_per_vol_x }; // Array dimensions
+    hist_hog_vol.resize(size_hog_vol,Histogram(nbins_hog, hist_range));         // Can change array size any time
+
+
+
+    
+
+    //HOG
+    //loop through all the pixels in the neighbourhoos and add the vlaues into the corresponding histogram
+    for (size_t p_x = interest_points[i].x - vol_x_size/2; p_x < interest_points[i].x + vol_x_size/2; p_x++) {
+      for (size_t p_y = interest_points[i].y - vol_y_size/2; p_y < interest_points[i].y + vol_y_size/2; p_y++) {
+        for (size_t p_t = interest_points[i].t - vol_t_size/2; p_t < interest_points[i].t + vol_t_size/2; p_t++) {
+
+          int cell_idx_x= (p_x- (interest_points[i].x - vol_x_size/2 ) )/cell_size_x;
+          int cell_idx_y= (p_y- (interest_points[i].y - vol_y_size/2 ) )/cell_size_y;
+          int cell_idx_t= (p_t- (interest_points[i].t - vol_t_size/2 ) )/cell_size_t;
+
+          // std::cout << "cell ids are" << cell_idx_t << " " << cell_idx_y << " " << cell_idx_t << '\n';
+
+          float mag=grad_mags[p_t].at<float>(p_y,p_x);
+          float orientation=grad_orientations[p_t].at<float>(p_y,p_x);
+
+          std::cout << "accesing cell " << cell_idx_t << " " << cell_idx_y << " " << cell_idx_x << '\n';
+
+          hist_hog_vol[cell_idx_t][cell_idx_y][cell_idx_x].add_val(orientation,mag);
+
+
+        }
+      }
+    }
+
+
+
+    //HOF
+
+    //hof for normal flow
+    std::vector<std::vector<std::vector<Histogram > > > hist_hof_vol;
+    hist_hof_vol.resize(cell_per_vol_t);
+    for (size_t t = 0; t < cell_per_vol_t; t++) {
+      hist_hof_vol[t].resize(cell_per_vol_y);
+      for (size_t y = 0; y < cell_per_vol_y; y++) {
+        hist_hof_vol[t][y].resize(cell_per_vol_x);
+
+        for (size_t x = 0; x < cell_per_vol_x; x++) {
+          hist_hof_vol[t][y][x]=Histogram(nbins_hog, hist_range);
+        }
+
+      }
+    }
+
+    //hof with 1 bin for the bin that has low magnitude
+    std::vector<std::vector<std::vector<Histogram > > > hist_hof_low_mag_vol;
+    hist_hof_low_mag_vol.resize(cell_per_vol_t);
+    for (size_t t = 0; t < cell_per_vol_t; t++) {
+      hist_hof_low_mag_vol[t].resize(cell_per_vol_y);
+      for (size_t y = 0; y < cell_per_vol_y; y++) {
+        hist_hof_low_mag_vol[t][y].resize(cell_per_vol_x);
+
+        for (size_t x = 0; x < cell_per_vol_x; x++) {
+          hist_hof_low_mag_vol[t][y][x]=Histogram(1, hist_range);
+        }
+
+      }
+    }
+
+
+    float mag_thresh_low=0.1f;
+
+
+    for (size_t p_x = interest_points[i].x - vol_x_size/2; p_x < interest_points[i].x + vol_x_size/2; p_x++) {
+      for (size_t p_y = interest_points[i].y - vol_y_size/2; p_y < interest_points[i].y + vol_y_size/2; p_y++) {
+        for (size_t p_t = interest_points[i].t - vol_t_size/2; p_t < interest_points[i].t + vol_t_size/2; p_t++) {
+
+          int cell_idx_x= (p_x- (interest_points[i].x - vol_x_size/2 ) )/cell_size_x;
+          int cell_idx_y= (p_y- (interest_points[i].y - vol_y_size/2 ) )/cell_size_y;
+          int cell_idx_t= (p_t- (interest_points[i].t - vol_t_size/2 ) )/cell_size_t;
+
+          // std::cout << "cell ids are" << cell_idx_t << " " << cell_idx_y << " " << cell_idx_t << '\n';
+
+          float mag=flow_mags[p_t].at<float>(p_y,p_x);
+          float orientation=flow_orientations[p_t].at<float>(p_y,p_x);
+
+          if (mag<mag_thresh_low) {
+            hist_hof_low_mag_vol[cell_idx_t][cell_idx_y][cell_idx_x].add_val(orientation,mag);
+          }else{
+            hist_hof_vol[cell_idx_t][cell_idx_y][cell_idx_x].add_val(orientation,mag);
+
+          }
+
+
+
+        }
+      }
+    }
+
+
+    //TODO concatenate the two histogram volumes cell by cell and therefore still end up with a volume of 3x3x2
+
+
+
+  }
+
 }

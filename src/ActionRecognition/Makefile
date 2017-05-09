@@ -5,7 +5,9 @@ include ../definitions.make
 
 OBJECTS = Example.o \
           KMeans.o \
-          Stip.o
+          Stip.o \
+					Histogram.o \
+					Volume.o
 
 OBJ = $(patsubst %, objects/%, $(OBJECTS))
 
