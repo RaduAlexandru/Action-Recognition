@@ -20,7 +20,7 @@ void Histogram::init(int nbins, float range){
 }
 void Histogram::add_val(float val, float weight){
 
-  //each bin has a center located at (bin_size/2)*i where i is has range 1---nbins
+  //each bin has a center located at (bin_size)*i - (bin_size/2) where i is has range 1---nbins
 
   // std::cout << "add_val: " << val << " weight: " << weight << '\n';
   // std::cout << "m_bin_size: " << m_bin_size << '\n';
@@ -29,7 +29,7 @@ void Histogram::add_val(float val, float weight){
   // std::cout << "closest bin is: " << closest_bin << '\n';
 
   //decide if it is on the right or left of the center
-  float center_closest=(m_bin_size/2.0)*closest_bin;
+  float center_closest=(m_bin_size)*(closest_bin+1)  - m_bin_size/2.0;
   int second_closest=-1;
   if (val<center_closest){  //seond closest is to the left
     if (closest_bin==0)
@@ -45,6 +45,14 @@ void Histogram::add_val(float val, float weight){
   // std::cout << "second closest " << second_closest << '\n';
 
   // //add values to the closest and second closest bins
+
+  std::cout << "val: " << val << '\n';
+  std::cout << "weight: " << weight << '\n';
+  std::cout << "center closest " << center_closest << '\n';
+  std::cout << "proportion closest " << (1 - std::fabs(val- center_closest)/m_bin_size) << '\n';
+  std::cout << "addig to closest : " << closest_bin << ": " << weight* (1 - std::fabs(val- center_closest)/m_bin_size) << '\n';
+  std::cout << "second closest: " << second_closest << ": " <<  weight* ( std::fabs(val- center_closest)/m_bin_size) << '\n';
+
   m_hist[closest_bin]= m_hist[closest_bin] + weight* (1 - (val- center_closest)/m_bin_size);
   m_hist[second_closest]= m_hist[closest_bin] + weight* ((val- center_closest)/m_bin_size);
 
@@ -70,6 +78,38 @@ void Histogram::normalize(){
     m_hist[i]=m_hist[i]/norm;
   }
 
+}
 
+
+void Histogram::concatenate(Histogram& hist){
+  // std::cout << "hist has size " << hist.m_hist.size() << '\n';
+  // std::cout << "before it has size " << m_hist.size() << '\n';
+  m_hist.insert(m_hist.end(),  hist.m_hist.begin(), hist.m_hist.end());
+  // std::cout << "after it has size " << m_hist.size() << '\n';
+}
+
+int Histogram::size(){
+  return m_hist.size();
+}
+
+// std::vector<float> Histogram::descriptor(){
+//   return m_hist;
+// }
+
+std::string Histogram::to_string(){
+  std::string desc_string;
+
+  std::ostringstream oss;
+
+  if (!m_hist.empty()){
+    // Convert all but the last element to avoid a trailing ","
+    std::copy(m_hist.begin(), m_hist.end()-1, std::ostream_iterator<float>(oss, " "));
+
+    // Now add the last element with no delimiter
+    oss << m_hist.back();
+  }
+
+  // std::cout << oss.str() << std::endl;
+  return oss.str();
 
 }

@@ -4,6 +4,8 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
+#include <sstream>
+#include <iterator>
 
 
 class Histogram
@@ -14,6 +16,10 @@ public:
   void init(int nbins, float range);
   void add_val(float val, float weight);
   void normalize();
+  void concatenate(Histogram& hist);
+  int size();
+  // std::vector<float> descriptor();
+  std::string to_string();
 
 private:
   float m_range;

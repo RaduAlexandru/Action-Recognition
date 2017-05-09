@@ -44,114 +44,105 @@ void Stip::run(){
 
   // m_video_path= "../experiments/videos/dummy.avi";
   // m_video_path= "../experiments/videos/LONGESTYARD_walk_f_nm_np1_fr_med_6.avi";
-  m_video_path= "../experiments/videos/Torwarttraining_2_(_sterreich)_catch_f_cm_np1_ba_goo_1.avi";
+  // m_video_path= "../experiments/videos/Torwarttraining_2_(_sterreich)_catch_f_cm_np1_ba_goo_1.avi";
   // m_video_path= "../experiments/videos/H_I_I_T__Swamis_stairs_with_Max_Wettstein_featuring_Donna_Wettstein_climb_stairs_f_cm_np1_ba_med_4.avi";
   // m_video_path= "../experiments/videos/likebeckam_run_f_cm_np1_fr_med_5.avi";
   // m_video_path = "../experiments/videos/Veoh_Alpha_Dog_1_walk_f_nm_np1_ri_med_24.avi";
   // m_video_path= "../experiments/videos/Ballfangen_catch_u_cm_np1_fr_goo_0.avi";
-  // m_video_path= "../experiments/videos/Clay_sBasketballSkillz_shoot_ball_f_nm_np1_ba_med_7.avi";
+  m_video_path= "../experiments/videos/Clay_sBasketballSkillz_shoot_ball_f_nm_np1_ba_med_7.avi";
 
-  std::vector<cv::Mat> Lx,Ly,Lt;
-  std::vector<cv::Mat> Lx2,Ly2,Lt2,LxLy,LxLt,LyLt;
-  std::vector<cv::Mat> Lx2_s,Ly2_s,Lt2_s,LxLy_s,LxLt_s,LyLt_s;
-  std::vector<cv::Mat> harris_responses;
-  std::vector<interest_point> interest_points;
+  std::string descriptor_file_path="./desc.txt";
+  std::ofstream desc_file;
+  desc_file.open (descriptor_file_path);
 
-  create_spacial_temporal_volume(m_st_volume,m_video_path);
-  gaussian_smooth(m_st_volume, m_st_volume, m_sigma_local_spacial, m_sigma_local_temporal);
-  compute_derivatives(m_st_volume, Lx,Ly,Lt);
-  compute_harris_coefficients(Lx,Ly,Lt, Lx2,Ly2,Lt2,LxLy,LxLt,LyLt);
+  std::string train_file_path = "../experiments/videos/videos/train.txt";
+  std::ifstream train_file( train_file_path );
 
-  //for  Torwarttraining_2_(_sterreich)_catch_f_cm_np1_ba_goo_1
-  float sigma_integration_spacial=5.0f;
-  float sigma_integration_temporal=2.0f;
-
-  for (size_t i = 1; i < 7; i++) {
-    for (size_t j = 1; j < 3; j++) {
-      sigma_integration_spacial=std::pow(2,(1+i)/2.0f);
-      sigma_integration_temporal=std::pow(2,j/2.0f);
+  //TODO add header to file
 
 
-      gaussian_smooth(Lx2, Lx2_s, sigma_integration_spacial, sigma_integration_temporal);
-      gaussian_smooth(Ly2, Ly2_s, sigma_integration_spacial, sigma_integration_temporal);
-      gaussian_smooth(Lt2, Lt2_s, sigma_integration_spacial, sigma_integration_temporal);
-      gaussian_smooth(LxLy, LxLy_s, sigma_integration_spacial, sigma_integration_temporal);
-      gaussian_smooth(LxLt, LxLt_s, sigma_integration_spacial, sigma_integration_temporal);
-      gaussian_smooth(LyLt, LyLt_s, sigma_integration_spacial, sigma_integration_temporal);
+  for( std::string line; getline( train_file, line ); ){
+    m_video_path =  "../experiments/videos/videos/" + line;
 
-      compute_harris_responses(harris_responses,Lx2_s,Ly2_s,Lt2_s,LxLy_s,LxLt_s,LyLt_s);
+    std::vector<cv::Mat> Lx,Ly,Lt;
+    std::vector<cv::Mat> Lx2,Ly2,Lt2,LxLy,LxLt,LyLt;
+    std::vector<cv::Mat> Lx2_s,Ly2_s,Lt2_s,LxLy_s,LxLt_s,LyLt_s;
+    std::vector<cv::Mat> harris_responses;
+    std::vector<interest_point> interest_points;
 
-      int start_idx=interest_points.size();
+    create_spacial_temporal_volume(m_st_volume,m_video_path);
+    gaussian_smooth(m_st_volume, m_st_volume, m_sigma_local_spacial, m_sigma_local_temporal);
+    compute_derivatives(m_st_volume, Lx,Ly,Lt);
+    compute_harris_coefficients(Lx,Ly,Lt, Lx2,Ly2,Lt2,LxLy,LxLt,LyLt);
 
-      compute_local_maxima(harris_responses,interest_points);
+    //for  Torwarttraining_2_(_sterreich)_catch_f_cm_np1_ba_goo_1
+    float sigma_integration_spacial=5.0f;
+    float sigma_integration_temporal=2.0f;
 
-      //add the scale to them
-      for (size_t i =start_idx; i < interest_points.size(); i++) {
-        interest_points[i].sigma_spacial=sigma_integration_spacial;
-        interest_points[i].sigma_temporal=sigma_integration_temporal;
+    //MY code
+    // for (size_t i = 1; i < 7; i++) {
+    //   for (size_t j = 1; j < 3; j++) {
+    //     sigma_integration_spacial=std::pow(2,(1+i)/2.0f);
+    //     sigma_integration_temporal=std::pow(2,j/2.0f);
+    //richrds settings
+    for (size_t i = 1; i < 4; i++) {
+      for (size_t j = 1; j < 3; j++) {
+        sigma_integration_spacial=i;
+        sigma_integration_temporal=j;
+
+
+        gaussian_smooth(Lx2, Lx2_s, sigma_integration_spacial, sigma_integration_temporal);
+        gaussian_smooth(Ly2, Ly2_s, sigma_integration_spacial, sigma_integration_temporal);
+        gaussian_smooth(Lt2, Lt2_s, sigma_integration_spacial, sigma_integration_temporal);
+        gaussian_smooth(LxLy, LxLy_s, sigma_integration_spacial, sigma_integration_temporal);
+        gaussian_smooth(LxLt, LxLt_s, sigma_integration_spacial, sigma_integration_temporal);
+        gaussian_smooth(LyLt, LyLt_s, sigma_integration_spacial, sigma_integration_temporal);
+
+        compute_harris_responses(harris_responses,Lx2_s,Ly2_s,Lt2_s,LxLy_s,LxLt_s,LyLt_s);
+
+        int start_idx=interest_points.size();
+
+        compute_local_maxima(harris_responses,interest_points);
+
+        //add the scale to them
+        for (size_t i =start_idx; i < interest_points.size(); i++) {
+          interest_points[i].sigma_spacial=sigma_integration_spacial;
+          interest_points[i].sigma_temporal=sigma_integration_temporal;
+        }
+
+
+        std::cout << "nr of interest points" << interest_points.size() << '\n';
+
       }
-
-
-      std::cout << "nr of interest points" << interest_points.size() << '\n';
-
     }
+
+    std::cout << "before nms " << interest_points.size() << '\n';
+    non_max_supress(interest_points, m_st_volume.size(), m_st_volume[0].rows, m_st_volume[0].cols);
+    non_max_supress(interest_points, m_st_volume.size(), m_st_volume[0].rows, m_st_volume[0].cols);
+    std::cout << "aftter nms " << interest_points.size() << '\n';
+
+
+
+    //---------------DESCRIPTORS---------------------------
+    std::vector<cv::Mat> grad_mags;
+    std::vector<cv::Mat> grad_orientations;
+    std::vector<cv::Mat> flow_mags;
+    std::vector<cv::Mat> flow_orientations;
+
+
+    compute_grad_orientations_magnitudes(Lx,Ly, grad_mags, grad_orientations );
+    compute_flow(m_st_volume, flow_mags, flow_orientations );
+    compute_descriptors(interest_points, grad_mags, grad_orientations, flow_mags, flow_orientations);
+
+    write_descriptors_to_file(interest_points, desc_file);
+
+    desc_file << "#"<< std::endl;
+
+
+
   }
 
-  std::cout << "before nms " << interest_points.size() << '\n';
-  non_max_supress(interest_points, m_st_volume.size(), m_st_volume[0].rows, m_st_volume[0].cols);
-  non_max_supress(interest_points, m_st_volume.size(), m_st_volume[0].rows, m_st_volume[0].cols);
-  std::cout << "aftter nms " << interest_points.size() << '\n';
-
-
-
-  //---------------DESCRIPTORS---------------------------
-  std::vector<cv::Mat> grad_mags;
-  std::vector<cv::Mat> grad_orientations;
-  std::vector<cv::Mat> flow_mags;
-  std::vector<cv::Mat> flow_orientations;
-
-
-  //TODO Use Scharr insted of sobel void Scharr(InputArray src, OutputArray dst, int ddepth, int dx, int dy, double scale=1, double delta=0, int borderType=BORDER_DEFAULT )
-
-  //TODO
-  /*
-  Mat grad_x, grad_y;
-    Scharr(gray, grad_x, CV_32FC1, 1, 0);
-    Scharr(gray, grad_y, CV_32FC1, 0, 1);
-    // 4. calculate gradient magnitude and direction
-    Mat magnitude, direction;
-    bool useDegree = true;    // use degree or rad
-    // the range of the direction is [0,2pi) or [0, 360)
-    cartToPolar(grad_x, grad_y, magnitude, direction, useDegree);*/
-
-
-  //TODO
-  /*
-  A Mapping of Type to Numbers in OpenCV
-
- C1	C2	C3	C4
-CV_8U	0	8	16	24
-CV_8S	1	9	17	25
-CV_16U	2	10	18	26
-CV_16S	3	11	19	27
-CV_32S	4	12	20	28
-CV_32F	5	13	21	29
-CV_64F	6	14	22	30*/
-
-  //TODO interpolation
-  /*
-  H(x1) =h(x1) +w*(1- (x-x1)/b  )
-  H(x2) =h(x1) +w*((x-x1)/b  )*/
-
-
-
-
-  compute_grad_orientations_magnitudes(Lx,Ly, grad_mags, grad_orientations );
-  compute_flow(m_st_volume, flow_mags, flow_orientations );
-  compute_descriptors(interest_points, grad_mags, grad_orientations, flow_mags, flow_orientations);
-
-
-
+  desc_file.close();
 
 
 
@@ -167,7 +158,7 @@ CV_64F	6	14	22	30*/
   // }
 
 
-  // // //Show volume with interest_points
+  // //Show volume with interest_points
   // while (true)
   // for (size_t i = 0; i < harris_responses.size(); i++) {
   //   // double min, max;
@@ -642,7 +633,7 @@ void Stip::draw_interest_points (cv::Mat frame, std::vector<interest_point >& in
     }
   }
 
-  std::cout << "drawn ips " << drawn_ips << '\n';
+  // std::cout << "drawn ips " << drawn_ips << '\n';
 
 
 }
@@ -775,7 +766,6 @@ void Stip::nms( const std::vector<interest_point>& srcRects, std::vector<interes
 	}
 }
 
-
 void Stip::compute_grad_orientations_magnitudes(std::vector<cv::Mat> Lx, std::vector<cv::Mat> Ly, std::vector<cv::Mat>& grad_mags, std::vector<cv::Mat>& grad_orientations ){
   std::cout << "compute_grad_orientations_magnitudes" << '\n';
 
@@ -825,8 +815,8 @@ void Stip::compute_descriptors(std::vector<interest_point>& interest_points, std
 
   //TODO put the k back to 9
   int k=2;
-  int nbins_hog=8;
-  float hist_range=360.0f;
+  int nbins_hog=4;
+  float hist_range=180.0f;
 
   //TODO read these values out of a struct called ST_vol or something similar
   int st_max_x=grad_orientations[0].cols;
@@ -858,15 +848,15 @@ void Stip::compute_descriptors(std::vector<interest_point>& interest_points, std
 
     //Borders
     if (interest_points[i].x + vol_x_size/2 > st_max_x  || interest_points[i].x - vol_x_size/2 < 0 ){
-      std::cout << "outise x" << '\n';
+      // std::cout << "outise x" << '\n';
       continue;
     }
     if (interest_points[i].y + vol_y_size/2 > st_max_y  || interest_points[i].y - vol_y_size/2 < 0 ){
-      std::cout << "outside y" << '\n';
+      // std::cout << "outside y" << '\n';
       continue;
     }
     if (interest_points[i].t + vol_t_size/2 > st_max_t  || interest_points[i].t - vol_t_size/2 < 0 ){
-      std::cout << "outside t" << '\n';
+      // std::cout << "outside t" << '\n';
       continue;
     }
 
@@ -874,29 +864,10 @@ void Stip::compute_descriptors(std::vector<interest_point>& interest_points, std
     std::cout << "points is insize the valid area" << '\n';
 
     //make a vol of histograms
-    //TODO volume should be a templated class which will be internally represented as a 3-times nested std::vector
-    // std::vector<std::vector<std::vector<Histogram > > > hist_hog_vol;
-    //
-    // hist_hog_vol.resize(cell_per_vol_t);
-    // for (size_t t = 0; t < cell_per_vol_t; t++) {
-    //   hist_hog_vol[t].resize(cell_per_vol_y);
-    //   for (size_t y = 0; y < cell_per_vol_y; y++) {
-    //     hist_hog_vol[t][y].resize(cell_per_vol_x);
-    //
-    //     for (size_t x = 0; x < cell_per_vol_x; x++) {
-    //       // std::cout << "created cell " << t << " " << y << " " << x  << '\n';
-    //       hist_hog_vol[t][y][x]=Histogram(nbins_hog, hist_range);
-    //     }
-    //
-    //   }
-    // }
     utils::Array<Histogram, 3> hist_hog_vol;
     size_t size_hog_vol [3]= { cell_per_vol_t, cell_per_vol_y, cell_per_vol_x }; // Array dimensions
-    hist_hog_vol.resize(size_hog_vol,Histogram(nbins_hog, hist_range));         // Can change array size any time
+    hist_hog_vol.resize(size_hog_vol,Histogram(nbins_hog, hist_range));
 
-
-
-    
 
     //HOG
     //loop through all the pixels in the neighbourhoos and add the vlaues into the corresponding histogram
@@ -908,12 +879,14 @@ void Stip::compute_descriptors(std::vector<interest_point>& interest_points, std
           int cell_idx_y= (p_y- (interest_points[i].y - vol_y_size/2 ) )/cell_size_y;
           int cell_idx_t= (p_t- (interest_points[i].t - vol_t_size/2 ) )/cell_size_t;
 
-          // std::cout << "cell ids are" << cell_idx_t << " " << cell_idx_y << " " << cell_idx_t << '\n';
+          // std::cout << "accesing cell " << cell_idx_t << " " << cell_idx_y << " " << cell_idx_x << '\n';
 
           float mag=grad_mags[p_t].at<float>(p_y,p_x);
           float orientation=grad_orientations[p_t].at<float>(p_y,p_x);
 
-          std::cout << "accesing cell " << cell_idx_t << " " << cell_idx_y << " " << cell_idx_x << '\n';
+          //make the orientation the same for oopsite directions
+          // orientation=orientation%180;
+          orientation = fmod(orientation,180);
 
           hist_hog_vol[cell_idx_t][cell_idx_y][cell_idx_x].add_val(orientation,mag);
 
@@ -925,39 +898,19 @@ void Stip::compute_descriptors(std::vector<interest_point>& interest_points, std
 
 
     //HOF
-
     //hof for normal flow
-    std::vector<std::vector<std::vector<Histogram > > > hist_hof_vol;
-    hist_hof_vol.resize(cell_per_vol_t);
-    for (size_t t = 0; t < cell_per_vol_t; t++) {
-      hist_hof_vol[t].resize(cell_per_vol_y);
-      for (size_t y = 0; y < cell_per_vol_y; y++) {
-        hist_hof_vol[t][y].resize(cell_per_vol_x);
+    utils::Array<Histogram, 3> hist_hof_vol;
+    size_t size_hof_vol [3]= { cell_per_vol_t, cell_per_vol_y, cell_per_vol_x }; // Array dimensions
+    hist_hof_vol.resize(size_hof_vol,Histogram(nbins_hog, hist_range));
 
-        for (size_t x = 0; x < cell_per_vol_x; x++) {
-          hist_hof_vol[t][y][x]=Histogram(nbins_hog, hist_range);
-        }
 
-      }
-    }
 
     //hof with 1 bin for the bin that has low magnitude
-    std::vector<std::vector<std::vector<Histogram > > > hist_hof_low_mag_vol;
-    hist_hof_low_mag_vol.resize(cell_per_vol_t);
-    for (size_t t = 0; t < cell_per_vol_t; t++) {
-      hist_hof_low_mag_vol[t].resize(cell_per_vol_y);
-      for (size_t y = 0; y < cell_per_vol_y; y++) {
-        hist_hof_low_mag_vol[t][y].resize(cell_per_vol_x);
-
-        for (size_t x = 0; x < cell_per_vol_x; x++) {
-          hist_hof_low_mag_vol[t][y][x]=Histogram(1, hist_range);
-        }
-
-      }
-    }
+    utils::Array<Histogram, 3> hist_hof_low_mag_vol;
+    hist_hof_low_mag_vol.resize(size_hof_vol,Histogram(1, 180.0f));
 
 
-    float mag_thresh_low=0.1f;
+    float mag_thresh_low=0.0001f;
 
 
     for (size_t p_x = interest_points[i].x - vol_x_size/2; p_x < interest_points[i].x + vol_x_size/2; p_x++) {
@@ -972,6 +925,9 @@ void Stip::compute_descriptors(std::vector<interest_point>& interest_points, std
 
           float mag=flow_mags[p_t].at<float>(p_y,p_x);
           float orientation=flow_orientations[p_t].at<float>(p_y,p_x);
+
+          //make the orientation the same for oopsite directions
+          orientation = fmod(orientation,180);
 
           if (mag<mag_thresh_low) {
             hist_hof_low_mag_vol[cell_idx_t][cell_idx_y][cell_idx_x].add_val(orientation,mag);
@@ -990,7 +946,61 @@ void Stip::compute_descriptors(std::vector<interest_point>& interest_points, std
     //TODO concatenate the two histogram volumes cell by cell and therefore still end up with a volume of 3x3x2
 
 
+    /*
+    auto ItA = VectorA.begin();
+  auto ItB = VectorB.begin();
+
+  while(ItA != VectorA.end() || ItB != VectorB.end())
+  {
+      if(ItA != VectorA.end())
+      {
+          ++ItA;
+      }
+      if(ItB != VectorB.end())
+      {
+          ++ItB;
+      }
+  }
+      */
+
+    //concatenate the the low threshold with the high threshold hof
+    for (size_t t = 0; t < cell_per_vol_t; t++) {
+      for (size_t y = 0; y < cell_per_vol_y; y++) {
+        for (size_t x = 0; x < cell_per_vol_x; x++) {
+          hist_hof_vol[t][y][x].concatenate(hist_hof_low_mag_vol[t][y][x]);
+        }
+      }
+    }
+
+    Histogram hof_full;
+    for(auto hist: hist_hof_vol){
+      hof_full.concatenate(hist);
+    }
+    hof_full.normalize();
+
+    Histogram hog_full;
+    for(auto hist: hist_hog_vol){
+      hog_full.concatenate(hist);
+    }
+    hog_full.normalize();
+
+    Histogram hof_hog;
+    hof_hog.concatenate(hog_full);
+    hof_hog.concatenate(hof_full);
+
+    // interest_points[i].descriptor=hof_hog.descriptor();
+    interest_points[i].descriptor=hof_hog;
 
   }
+
+}
+
+void Stip::write_descriptors_to_file(std::vector<interest_point> interest_points, std::ofstream& file){
+
+  for (size_t i = 0; i < interest_points.size(); i++) {
+    std::cout << "string desc:: " << interest_points[i].descriptor.to_string() << '\n';
+    file << interest_points[i].descriptor.to_string() << std::endl;
+  }
+
 
 }

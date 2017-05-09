@@ -16,6 +16,9 @@
 #include "Histogram.hh"
 #include "ArrayFastest.hh"
 
+#include <iostream>
+#include <fstream>
+
 #include "opencv2/video/tracking.hpp"
 
 namespace ActionRecognition {
@@ -25,7 +28,7 @@ struct interest_point {
 	float sigma_spacial, sigma_temporal;
 	float response;
 	cv::Rect bb;
-  std::vector<float> descriptor;
+  Histogram descriptor;
 } ;
 
 
@@ -61,6 +64,7 @@ private:
   void compute_grad_orientations_magnitudes(std::vector<cv::Mat> Lx, std::vector<cv::Mat> Ly, std::vector<cv::Mat>& grad_mags, std::vector<cv::Mat>& grad_orientations );
   void compute_flow(std::vector<cv::Mat> m_st_volume, std::vector<cv::Mat>& flow_mags, std::vector<cv::Mat>& flow_orientations );
   void compute_descriptors(std::vector<interest_point>& interest_points, std::vector<cv::Mat> grad_mags, std::vector<cv::Mat> grad_orientations, std::vector<cv::Mat> flow_mags, std::vector<cv::Mat> flow_orientations);
+  void write_descriptors_to_file(std::vector<interest_point> interest_points, std::ofstream& file);
 
 
 };
