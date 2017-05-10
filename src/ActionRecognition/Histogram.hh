@@ -25,6 +25,7 @@ private:
   float m_range;
   float m_bin_size;
   std::vector<float> m_hist;
+  bool initialized;
 
 };
 

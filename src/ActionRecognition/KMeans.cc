@@ -10,11 +10,11 @@
 
 using namespace ActionRecognition;
 
-const Core::ParameterInt KMeans::paramNumberOfClusters_("number-of-clusters", 4000, "kmeans");
+const Core::ParameterInt KMeans::paramNumberOfClusters_("number-of-clusters", 2000, "kmeans");
 
-const Core::ParameterInt KMeans::paramNumberOfIterations_("number-of-iterations", 100, "kmeans");
+const Core::ParameterInt KMeans::paramNumberOfIterations_("number-of-iterations", 20, "kmeans");
 
-const Core::ParameterString KMeans::paramModelFile_("model-file", "", "kmeans");
+const Core::ParameterString KMeans::paramModelFile_("model-file", "kmeans_model.txt", "kmeans");
 
 KMeans::KMeans() :
 		nClusters_(Core::Configuration::config(paramNumberOfClusters_)),
@@ -22,10 +22,12 @@ KMeans::KMeans() :
 		modelFile_(Core::Configuration::config(paramModelFile_))
 {
 	if (modelFile_.empty())
-		Core::Error::msg("kmeans.model-file could not be opened.") << Core::Error::abort;
+		Core::Error::msg("kmeans.model-file must not be empty.") << Core::Error::abort;
 }
 
 void KMeans::train(const Math::Matrix<Float>& trainingData) {
+	Core::Log::openTag("kmeans");
+
 	u32 featureDim = trainingData.nRows();
 	u32 nFeatures = trainingData.nColumns();
 	// random initialization if no mean file has been loaded
@@ -40,6 +42,8 @@ void KMeans::train(const Math::Matrix<Float>& trainingData) {
 
 	// train
 	for (u32 i = 0; i < nIterations_; i++) {
+		Core::Log::os("iteration ") << i;
+		std::cout << "interation " << i << '\n';
 		// cluster
 		Math::Vector<u32> clusterIndices(nFeatures);
 		cluster(trainingData, clusterIndices);
@@ -54,6 +58,8 @@ void KMeans::train(const Math::Matrix<Float>& trainingData) {
 
 	// save model
 	means_.write(modelFile_);
+
+	Core::Log::closeTag();
 }
 
 void KMeans::loadModel() {
@@ -69,13 +75,22 @@ void KMeans::cluster(const Math::Matrix<Float>& data, Math::Vector<u32>& cluster
 
 	clusterIndices.resize(data.nColumns());
 
+#pragma omp parallel for
 	for (u32 n = 0; n < data.nColumns(); n++) {
-		Math::Matrix<Float> tmpMeans(means_.nRows(), means_.nColumns());
-		tmpMeans.copy(means_);
-		Math::Vector<Float> f(data.nRows());
-		data.getColumn(n, f);
-		Math::Vector<Float> dist(nClusters_);
-		dist.columnwiseSquaredEuclideanDistance(tmpMeans, f);
-		clusterIndices.at(n) = dist.argAbsMax();
+
+		Float minDist = Types::max<Float>();
+		u32 bestCluster = 0;
+		for (u32 c = 0; c < nClusters_; c++) {
+			Float dist = 0;
+			for (u32 d = 0; d < data.nRows(); d++) {
+				dist += (data.at(d, n) - means_.at(d, c)) * (data.at(d, n) - means_.at(d, c));
+				if (dist > minDist) break;
+			}
+			if (dist < minDist) {
+				minDist = dist;
+				bestCluster = c;
+			}
+			clusterIndices.at(n) = bestCluster;
+		}
 	}
 }

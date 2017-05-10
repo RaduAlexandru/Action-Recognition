@@ -40,6 +40,10 @@ public:
 	 * @param classIndices: a vector containing the cluster index for each sample from the data matrix
 	 */
 	void cluster(const Math::Matrix<Float>& data, Math::Vector<u32>& clusterIndices);
+	/*
+	 * @return the number of clusters
+	 */
+	u32 nClusters() { return nClusters_; }
 };
 
 } // namespace

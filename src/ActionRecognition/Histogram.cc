@@ -18,7 +18,11 @@ void Histogram::init(int nbins, float range){
   m_range=range;
   m_bin_size=range/nbins;
 }
+
+
 void Histogram::add_val(float val, float weight){
+
+  initialized = true;
 
   //each bin has a center located at (bin_size)*i - (bin_size/2) where i is has range 1---nbins
 
@@ -45,13 +49,13 @@ void Histogram::add_val(float val, float weight){
   // std::cout << "second closest " << second_closest << '\n';
 
   // //add values to the closest and second closest bins
-
-  std::cout << "val: " << val << '\n';
-  std::cout << "weight: " << weight << '\n';
-  std::cout << "center closest " << center_closest << '\n';
-  std::cout << "proportion closest " << (1 - std::fabs(val- center_closest)/m_bin_size) << '\n';
-  std::cout << "addig to closest : " << closest_bin << ": " << weight* (1 - std::fabs(val- center_closest)/m_bin_size) << '\n';
-  std::cout << "second closest: " << second_closest << ": " <<  weight* ( std::fabs(val- center_closest)/m_bin_size) << '\n';
+  //
+  // std::cout << "val: " << val << '\n';
+  // std::cout << "weight: " << weight << '\n';
+  // std::cout << "center closest " << center_closest << '\n';
+  // std::cout << "proportion closest " << (1 - std::fabs(val- center_closest)/m_bin_size) << '\n';
+  // std::cout << "addig to closest : " << closest_bin << ": " << weight* (1 - std::fabs(val- center_closest)/m_bin_size) << '\n';
+  // std::cout << "second closest: " << second_closest << ": " <<  weight* ( std::fabs(val- center_closest)/m_bin_size) << '\n';
 
   m_hist[closest_bin]= m_hist[closest_bin] + weight* (1 - (val- center_closest)/m_bin_size);
   m_hist[second_closest]= m_hist[closest_bin] + weight* ((val- center_closest)/m_bin_size);
@@ -71,7 +75,7 @@ void Histogram::normalize(){
   }
   norm=std::sqrt(norm);
 
-  std::cout << " norm is " << norm << '\n';
+  // std::cout << " norm is " << norm << '\n';
 
   //normalize
   for (size_t i = 0; i < m_hist.size(); i++) {
