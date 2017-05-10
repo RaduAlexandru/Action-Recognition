@@ -11,28 +11,11 @@ using namespace ActionRecognition;
 
 // constructor
 Stip::Stip(){
-  //TODO read the parameters from a config file
 
-  //for dummy video
-  // m_sigma_local_spacial=1.0f;
-	// m_sigma_local_temporal=1.0f;
-
-  //0.3 for sobel 0.9 for sepderivatives
-  //works well with derivative Lt being just the difference
-  // m_sigma_local_spacial=0.3f;
-  // m_sigma_local_temporal=0.9f;
-
-
-
-  //works well with derivative Lt being the sobel
+  //Sigmas used to smooth the  ST-volume
   m_sigma_local_spacial=1.0f;
   m_sigma_local_temporal=2.0f;
 
-
-
-  // //Alexander Richard's settings
-  // m_sigma_local_spacial=1.0f;
-  // m_sigma_local_temporal=2.0f;
 }
 
 // empty destructor
@@ -43,173 +26,151 @@ void Stip::run(){
   std::cout << "run stip" << '\n';
 
   // m_video_path= "../experiments/videos/dummy.avi";
-  // m_video_path= "../experiments/videos/LONGESTYARD_walk_f_nm_np1_fr_med_6.avi";
   m_video_path= "../experiments/videos/Torwarttraining_2_(_sterreich)_catch_f_cm_np1_ba_goo_1.avi";
-  // m_video_path= "../experiments/videos/H_I_I_T__Swamis_stairs_with_Max_Wettstein_featuring_Donna_Wettstein_climb_stairs_f_cm_np1_ba_med_4.avi";
-  // m_video_path= "../experiments/videos/likebeckam_run_f_cm_np1_fr_med_5.avi";
-  // m_video_path = "../experiments/videos/Veoh_Alpha_Dog_1_walk_f_nm_np1_ri_med_24.avi";
-  // m_video_path= "../experiments/videos/Ballfangen_catch_u_cm_np1_fr_goo_0.avi";
-  // m_video_path= "../experiments/videos/Clay_sBasketballSkillz_shoot_ball_f_nm_np1_ba_med_7.avi";
-
-  // std::string descriptor_file_path="./desc.txt";
-  // std::ofstream desc_file;
-  // desc_file.open (descriptor_file_path);
-  //
-  // std::string train_file_path = "../experiments/videos/videos/full.txt";
-  // std::ifstream train_file( train_file_path );
-  // int nr_vectors=0;
-  // int vector_dimensions=0;
-  // int nr_videos=0;
-  //
-  //
-  // for( std::string line; getline( train_file, line ); ){
-  //   // m_video_path =  "../experiments/videos/videos/" + line;
-  //
-  //   std::vector<cv::Mat> Lx,Ly,Lt;
-  //   std::vector<cv::Mat> Lx2,Ly2,Lt2,LxLy,LxLt,LyLt;
-  //   std::vector<cv::Mat> Lx2_s,Ly2_s,Lt2_s,LxLy_s,LxLt_s,LyLt_s;
-  //   std::vector<cv::Mat> harris_responses;
-  //   std::vector<interest_point> interest_points;
-  //
-  //   create_spacial_temporal_volume(m_st_volume,m_video_path);
-  //   gaussian_smooth(m_st_volume, m_st_volume, m_sigma_local_spacial, m_sigma_local_temporal);
-  //   compute_derivatives(m_st_volume, Lx,Ly,Lt);
-  //   compute_harris_coefficients(Lx,Ly,Lt, Lx2,Ly2,Lt2,LxLy,LxLt,LyLt);
-  //
-  //   //for  Torwarttraining_2_(_sterreich)_catch_f_cm_np1_ba_goo_1
-  //   float sigma_integration_spacial=5.0f;
-  //   float sigma_integration_temporal=2.0f;
-  //
-  //   //MY code
-  //   // for (size_t i = 1; i < 7; i++) {
-  //   //   for (size_t j = 1; j < 3; j++) {
-  //   //     sigma_integration_spacial=std::pow(2,(1+i)/2.0f);
-  //   //     sigma_integration_temporal=std::pow(2,j/2.0f);
-  //   //richrds settings
-  //   // for (size_t i = 1; i < 4; i++) {
-  //   //   for (size_t j = 1; j < 4; j++) {
-  //   //     sigma_integration_spacial=i;
-  //   //     sigma_integration_temporal=j;
-  //   //MY code modified
-  //   for (size_t i = 1; i < 4; i++) {
-  //     for (size_t j = 1; j < 3; j++) {
-  //       sigma_integration_spacial=i;
-  //       sigma_integration_temporal=j;
-  //
-  //
-  //       gaussian_smooth(Lx2, Lx2_s, sigma_integration_spacial, sigma_integration_temporal);
-  //       gaussian_smooth(Ly2, Ly2_s, sigma_integration_spacial, sigma_integration_temporal);
-  //       gaussian_smooth(Lt2, Lt2_s, sigma_integration_spacial, sigma_integration_temporal);
-  //       gaussian_smooth(LxLy, LxLy_s, sigma_integration_spacial, sigma_integration_temporal);
-  //       gaussian_smooth(LxLt, LxLt_s, sigma_integration_spacial, sigma_integration_temporal);
-  //       gaussian_smooth(LyLt, LyLt_s, sigma_integration_spacial, sigma_integration_temporal);
-  //
-  //       compute_harris_responses(harris_responses,Lx2_s,Ly2_s,Lt2_s,LxLy_s,LxLt_s,LyLt_s);
-  //
-  //       // //Show volume harris reponses
-  //       // bool showing=true;
-  //       // while (showing)
-  //       // for (size_t i = 0; i < harris_responses.size(); i++) {
-  //       //   cv::imshow("window", mat2gray(harris_responses[i]));
-  //       //   char key = cvWaitKey(50);
-  //       //       if (key == 27){ // ESC
-  //       //           showing=false;
-  //       //           break;
-  //       //         }
-  //       // }
-  //
-  //       int start_idx=interest_points.size();
-  //
-  //       compute_local_maxima(harris_responses,interest_points);
-  //
-  //       //add the scale to them
-  //       for (size_t i =start_idx; i < interest_points.size(); i++) {
-  //         interest_points[i].sigma_spacial=sigma_integration_spacial;
-  //         interest_points[i].sigma_temporal=sigma_integration_temporal;
-  //       }
-  //
-  //
-  //       std::cout << "nr of interest points" << interest_points.size() << '\n';
-  //
-  //     }
-  //   }
-  //
-  //   std::cout << "before nms " << interest_points.size() << '\n';
-  //   non_max_supress(interest_points, m_st_volume.size(), m_st_volume[0].rows, m_st_volume[0].cols);
-  //   non_max_supress(interest_points, m_st_volume.size(), m_st_volume[0].rows, m_st_volume[0].cols);
-  //   std::cout << "aftter nms " << interest_points.size() << '\n';
-  //
-  //
-  //
-  //   //---------------DESCRIPTORS---------------------------
-  //   std::vector<cv::Mat> grad_mags;
-  //   std::vector<cv::Mat> grad_orientations;
-  //   std::vector<cv::Mat> flow_mags;
-  //   std::vector<cv::Mat> flow_orientations;
-  //
-  //
-  //   compute_grad_orientations_magnitudes(Lx,Ly, grad_mags, grad_orientations );
-  //   compute_flow(m_st_volume, flow_mags, flow_orientations );
-  //   compute_descriptors(interest_points, grad_mags, grad_orientations, flow_mags, flow_orientations);
-  //
-  //   int descriptor_written=write_descriptors_to_file(interest_points, desc_file);
-  //
-  //   desc_file << "#"<< std::endl;
-  //
-  //
-  //   nr_vectors+=descriptor_written;
-  //   vector_dimensions=162;  //TODO remove hardcode
-  //   nr_videos++;
-  //
-  //
-  //
-  //   //Show volume with interest_points
-  //   bool showing=true;
-  //   while (showing)
-  //   for (size_t i = 0; i < harris_responses.size(); i++) {
-  //     // double min, max;
-  //     // cv::minMaxLoc(harris_responses[i], &min, &max);
-  //     // std::cout << "min max is " << min << " " << max << '\n';
-  //     cv::Mat frame;
-  //     frame=mat2gray(m_st_volume[i]);
-  //     cv::cvtColor(frame, frame, CV_GRAY2BGR);
-  //     draw_interest_points(frame,interest_points,i);
-  //     cv::imshow("window", frame);
-  //     // cv::waitKey(0);
-  //     char key = cvWaitKey(50);
-  //         if (key == 27){ // ESC
-  //             showing=false;
-  //             break;
-  //           }
-  //   }
-  //
-  // }
-  //
-  // //Add header to file
-  // desc_file.seekp(0); //Move at start of file
-  // desc_file << nr_vectors << " " << vector_dimensions << " " << nr_videos << std::endl;
-  // desc_file.close();
-
-
-
 
   KMeans kmeans;
-  std::string descriptor_file_path="./desc_1.txt";
-  // //KMEANS
-  // //Read the file and generate a big matrix of vectors
-  // std::string descriptor_file_path="./desc_1.txt";
-  // Math::Matrix<Float> features;
-  // read_features_from_file(descriptor_file_path, features);
-  // kmeans.train(features);
+  std::string descriptor_file_path="./desc.txt";
+  std::vector<std::vector <float> > bow_per_video;
 
 
-  //BoW each video
+  task_1_2(descriptor_file_path);
+  task_3_train(descriptor_file_path, kmeans);
+  task_3_bow(descriptor_file_path, kmeans, bow_per_video);
+  // task_4(bow_per_video); //TODO
+
+
+}
+
+//Everything
+void Stip::task_1_2(std::string descriptor_file_path){
+  std::cout << "task 1 and 2" << '\n';
+
+  std::ofstream desc_file;
+  desc_file.open (descriptor_file_path);
+
+  std::string train_file_path = "../experiments/videos/videos/full.txt";
+  std::ifstream train_file( train_file_path );
+  int nr_vectors=0;
+  int vector_dimensions=0;
+  int nr_videos=0;
+
+
+  for( std::string line; getline( train_file, line ); ){
+    m_video_path =  "../experiments/videos/videos/" + line;
+    std::cout << "computing interest points for video " << line << '\n';
+
+    std::vector<cv::Mat> Lx,Ly,Lt;
+    std::vector<cv::Mat> Lx2,Ly2,Lt2,LxLy,LxLt,LyLt;
+    std::vector<cv::Mat> Lx2_s,Ly2_s,Lt2_s,LxLy_s,LxLt_s,LyLt_s;
+    std::vector<cv::Mat> harris_responses;
+    std::vector<interest_point> interest_points;
+
+    create_spacial_temporal_volume(m_st_volume,m_video_path);
+    gaussian_smooth(m_st_volume, m_st_volume, m_sigma_local_spacial, m_sigma_local_temporal);
+    compute_derivatives(m_st_volume, Lx,Ly,Lt);
+    compute_harris_coefficients(Lx,Ly,Lt, Lx2,Ly2,Lt2,LxLy,LxLt,LyLt);
+
+    float sigma_integration_spacial=5.0f;
+    float sigma_integration_temporal=2.0f;
+
+    //alexanders settings
+    for (size_t i = 1; i < 4; i++) {
+      for (size_t j = 1; j < 3; j++) {
+        sigma_integration_spacial=i;
+        sigma_integration_temporal=j;
+
+
+        gaussian_smooth(Lx2, Lx2_s, sigma_integration_spacial, sigma_integration_temporal);
+        gaussian_smooth(Ly2, Ly2_s, sigma_integration_spacial, sigma_integration_temporal);
+        gaussian_smooth(Lt2, Lt2_s, sigma_integration_spacial, sigma_integration_temporal);
+        gaussian_smooth(LxLy, LxLy_s, sigma_integration_spacial, sigma_integration_temporal);
+        gaussian_smooth(LxLt, LxLt_s, sigma_integration_spacial, sigma_integration_temporal);
+        gaussian_smooth(LyLt, LyLt_s, sigma_integration_spacial, sigma_integration_temporal);
+
+        compute_harris_responses(harris_responses,Lx2_s,Ly2_s,Lt2_s,LxLy_s,LxLt_s,LyLt_s);
+
+        int start_idx=interest_points.size();
+
+        compute_local_maxima(harris_responses,interest_points);
+
+        //add the scale to them
+        for (size_t i =start_idx; i < interest_points.size(); i++) {
+          interest_points[i].sigma_spacial=sigma_integration_spacial;
+          interest_points[i].sigma_temporal=sigma_integration_temporal;
+        }
+
+      }
+    }
+
+    non_max_supress(interest_points, m_st_volume.size(), m_st_volume[0].rows, m_st_volume[0].cols);
+    non_max_supress(interest_points, m_st_volume.size(), m_st_volume[0].rows, m_st_volume[0].cols);
+
+
+
+    //---------------DESCRIPTORS---------------------------
+    std::vector<cv::Mat> grad_mags;
+    std::vector<cv::Mat> grad_orientations;
+    std::vector<cv::Mat> flow_mags;
+    std::vector<cv::Mat> flow_orientations;
+
+
+    compute_grad_orientations_magnitudes(Lx,Ly, grad_mags, grad_orientations );
+    compute_flow(m_st_volume, flow_mags, flow_orientations );
+    compute_descriptors(interest_points, grad_mags, grad_orientations, flow_mags, flow_orientations);
+
+    int descriptor_written=write_descriptors_to_file(interest_points, desc_file);
+
+    desc_file << "#"<< std::endl;
+
+
+    nr_vectors+=descriptor_written;
+    vector_dimensions=162;  //TODO remove hardcode
+    nr_videos++;
+
+
+
+    //Show volume with interest_points
+    bool showing=true;
+    while (showing)
+    for (size_t i = 0; i < harris_responses.size(); i++) {
+      // double min, max;
+      // cv::minMaxLoc(harris_responses[i], &min, &max);
+      // std::cout << "min max is " << min << " " << max << '\n';
+      cv::Mat frame;
+      frame=mat2gray(m_st_volume[i]);
+      cv::cvtColor(frame, frame, CV_GRAY2BGR);
+      draw_interest_points(frame,interest_points,i);
+      cv::imshow("window", frame);
+      // cv::waitKey(0);
+      char key = cvWaitKey(50);
+          if (key == 27){ // ESC
+              showing=false;
+              break;
+            }
+    }
+
+  }
+
+  //Add header to file
+  desc_file.seekp(0); //Move at start of file
+  desc_file << nr_vectors << " " << vector_dimensions << " " << nr_videos << std::endl;
+  desc_file.close();
+}
+void Stip::task_3_train(std::string descriptor_file_path, KMeans& kmeans){
+  Math::Matrix<Float> features;
+  std::cout << "reading features..." << '\n';
+  read_features_from_file(descriptor_file_path, features);
+  std::cout << "training kmeans, grab a beer..." << '\n';
+  kmeans.train(features);
+}
+void Stip::task_3_bow(std::string descriptor_file_path , KMeans& kmeans, std::vector<std::vector <float> >& bow_per_video){
+  // BoW each video
   kmeans.loadModel();
   std::vector<Math::Matrix<Float>> features_per_video;
   int n_train_videos=226;
   read_features_per_video_from_file(descriptor_file_path, features_per_video,n_train_videos);
 
-  std::vector<std::vector <float> > bow_per_video(n_train_videos);
+  bow_per_video.resize(n_train_videos);
 
   for (size_t i = 0; i < n_train_videos; i++) {
     Math::Vector<u32> clusterIndices;
@@ -223,129 +184,15 @@ void Stip::run(){
     }
 
     bow_per_video.push_back(bow_hist);
+
+    std::cout << "finished BoW for video " << i << '\n';
+
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-  // // //Show volume harris reponses
-  // for (size_t i = 0; i < harris_responses.size(); i++) {
-  //   cv::imshow("window", mat2gray(harris_responses[i]));
-  //   cv::waitKey(0);
-  //   char key = cvWaitKey(30);
-  //       if (key == 27) // ESC
-  //           break;
-  // }
-
-
-  // //Show volume with interest_points
-  // while (true)
-  // for (size_t i = 0; i < harris_responses.size(); i++) {
-  //   // double min, max;
-  //   // cv::minMaxLoc(harris_responses[i], &min, &max);
-  //   // std::cout << "min max is " << min << " " << max << '\n';
-  //   cv::Mat frame;
-  //   frame=mat2gray(m_st_volume[i]);
-  //   cv::cvtColor(frame, frame, CV_GRAY2BGR);
-  //   draw_interest_points(frame,interest_points,i);
-  //   cv::imshow("window", frame);
-  //   // cv::waitKey(0);
-  //   char key = cvWaitKey(50);
-  //       if (key == 27) // ESC
-  //           break;
-  // }
-
-
-  // // //Show blankc with interest_points
-  // while (true)
-  // for (size_t i = 0; i < harris_responses.size(); i++) {
-  //   double min, max;
-  //   cv::minMaxLoc(harris_responses[i], &min, &max);
-  //   std::cout << "min max is " << min << " " << max << '\n';
-  //   cv::Mat blank= cv::Mat::zeros(m_st_volume[i].rows,m_st_volume[i].cols,CV_32F);
-  //   blank=mat2gray(blank);
-  //   cv::cvtColor(blank, blank, CV_GRAY2BGR);
-  //   draw_interest_points(blank,interest_points,i);
-  //   cv::imshow("window", blank);
-  //   // cv::waitKey(0);
-  //   char key = cvWaitKey(50);
-  //       if (key == 27) // ESC
-  //           break;
-  // }
-
-
-
-
-
-
-  //Read video  (reads the whole video in a spacial-temporal_volume)
-  //gausian smoth the whole volume
-  /*Compute derivatives
-    out: Lx volume containing the derivative in x for all pixels
-         Ly volume containing the derivative in y for all pixels
-         Lt volume containing the derivative in t for all pixels
-   )*/
-   /*compute the derivatives squared and so on (eg: Lx^2 will be again a big tensor given by the elemt wise multiplication fo Lx and Lx)
-    out: 6 big tensors corresponding to Lx^2, LxLy, LxLt, Ly^2, LyLt, Lt^2
-   */
-
-   //for each spacial and temporal scale
-    //smooth the 6 big tensors using those scales
-    //get harris responsed in the whole volume (out: harris_responses volume)
-    //get local maxima in the volume
-
-
-
-
-   //find interest points in the volume by going through all the pixels
-
-
-
-   // //Show volume
-   // for (size_t i = 0; i < m_st_volume.size(); i++) {
-   //   cv::imshow("window", m_st_volume[i]);
-   //   char key = cvWaitKey(30);
-   //       if (key == 27) // ESC
-   //           break;
-   // }
-
-
-  // //read the file
-  // std::string video_path= "../experiments/videos/dummy.avi";
-  // cv::VideoCapture cap(video_path);
-  // if (!cap.isOpened()){
-  //     std::cout << "!!! Failed to open file: " << video_path << std::endl;
-  //     return ;
-  // }
-  //
-  //   cv::Mat frame;
-  //   for(;;)
-  //   {
-  //     if (!cap.read(frame))
-  //         break;
-  //
-  //     process_frame(frame);
-  //     //st_buffer.add_frame(frame);
-  //
-  //
-  //     cv::imshow("window", frame);
-  //
-  //     char key = cvWaitKey(30);
-  //     if (key == 27) // ESC
-  //         break;
-  //   }
-
-
 }
+
+
+
 
 cv::Mat Stip::mat2gray(const cv::Mat& src){
     cv::Mat dst;
@@ -373,24 +220,16 @@ void Stip::create_spacial_temporal_volume(std::vector<cv::Mat>& m_st_volume, std
     frame.convertTo(frame, CV_32FC1);
     cv::normalize(frame, frame, 0.0f, 1.0f, cv::NORM_MINMAX, CV_32FC1); //Normalize to 1 to avoid underflow or overflow
 
-    std::cout << "type of frame is "<< frame.type() << '\n';
-    // double min, max;
-    // cv::minMaxLoc(frame, &min, &max);
-    // std::cout << "min max is " << min << " " << max << '\n';
-
-
-    m_st_volume.push_back(frame.clone()); //need to clone it otherwise all frames will be the same
+    m_st_volume.push_back(frame.clone());
 
     // cv::imshow("window", frame);
     // char key = cvWaitKey(30);
     //     if (key == 27) // ESC
     //         break;
   }
-  std::cout << "std_vilume has size " << m_st_volume.size() << '\n';
 }
 
 void Stip::gaussian_smooth(std::vector<cv::Mat> vol_in, std::vector<cv::Mat>& vol_out, float m_sigma_local_spacial, float m_sigma_local_temporal){
-  std::cout << "gaussian smooth" << '\n';
 
   //get kernels
   int kernel_size=15;
@@ -425,14 +264,6 @@ void Stip::gaussian_smooth(std::vector<cv::Mat> vol_in, std::vector<cv::Mat>& vo
     //apply a 1d gausian only in the x direction, which corresponds to time
     filter2D(slice, slice, -1, ker_temporal);
 
-    // //show slice
-    // cv::imshow("window", slice);
-    // cv::waitKey(0);
-    // char key = cvWaitKey(30);
-    //     if (key == 27) // ESC
-    //         break;
-
-
 
     //copy it back
     for (size_t y = 0; y < m_st_volume[0].rows; y++) {
@@ -455,50 +286,13 @@ void Stip::compute_derivatives(std::vector<cv::Mat>& m_st_volume, std::vector<cv
   for (size_t i = 0; i < m_st_volume.size(); i++) {
     cv::Sobel( m_st_volume[i], Ix, CV_32F, 1, 0, 3, 1, 0, cv::BORDER_DEFAULT);
     cv::Sobel( m_st_volume[i], Iy, CV_32F, 0, 1, 3, 1, 0, cv::BORDER_DEFAULT);
-    //
-    // Scharr(m_st_volume[i], Ix, CV_32FC1, 1, 0);
-    // Scharr(m_st_volume[i], Iy, CV_32FC1, 0, 1);
-
-    // //Maybe convolving with my own kernel could be better because then the derivatives will have the same range
-    // cv::Mat ker_sobel = cv::Mat::zeros( 3, 1, CV_32F );
-    // ker_sobel.at<float>(0)=-1;
-    // ker_sobel.at<float>(1)=0;
-    // ker_sobel.at<float>(2)=1;
-    // cv::Mat ker_dummy = cv::Mat::zeros( 3, 1, CV_32F );
-    // ker_dummy.at<float>(3/2)=1;
-    // sepFilter2D(m_st_volume[i], Ix, CV_32F, ker_sobel, ker_dummy );
-    // sepFilter2D(m_st_volume[i], Iy, CV_32F, ker_dummy, ker_sobel );
-
 
     Lx.push_back(Ix.clone());
     Ly.push_back(Iy.clone());
   }
 
-  // //Temporal derivatives
-  // for (size_t i = 0; i < m_st_volume.size()-1; i++) {
-  //   It = (m_st_volume[i+1] - m_st_volume[i]);
-  //   Lt.push_back(It.clone());
-  // }
-  // //last frame doesnt have a next one to compute the spacial derivative so we just grab the last one again
-  // It = (m_st_volume[m_st_volume.size()-1] - m_st_volume[m_st_volume.size()-1]);
-  // Lt.push_back(It.clone());
 
-
-  // //Third way by taking centrla difference
-  // //Temporal derivatives
-  // for (size_t i = 0; i < m_st_volume.size()-2; i++) {
-  //   It = (m_st_volume[i+2] - m_st_volume[i]);
-  //   Lt.push_back(It.clone());
-  // }
-  // //last frame doesnt have a next one to compute the spacial derivative so we just grab the last one again
-  // It = (m_st_volume[m_st_volume.size()-1] - m_st_volume[m_st_volume.size()-1]);
-  // Lt.push_back(It.clone());
-  // Lt.push_back(It.clone());
-
-
-
-
-  //Second way of doing temporal derivatives by doing a sobel in a y-t slice
+  //Temporal derivatives by doing a sobel in a y-t slice
   cv::Mat slice=cv::Mat(m_st_volume[0].rows, m_st_volume.size(), CV_32F);
 
   //allocate memory for Lt
@@ -517,17 +311,6 @@ void Stip::compute_derivatives(std::vector<cv::Mat>& m_st_volume, std::vector<cv
 
 
     cv::Sobel( slice, slice, CV_32F, 1, 0, 3, 1, 0, cv::BORDER_DEFAULT);
-    // cv::Sobel( slice, slice, CV_32F, 1, 0, 3, 1, 0, cv::BORDER_REFLECT);
-    // Scharr(slice, slice, CV_32FC1, 1, 0);
-
-
-    // //show slice
-    // cv::imshow("window", mat2gray(slice));
-    // cv::waitKey(0);
-    // char key = cvWaitKey(30);
-    //     if (key == 27) // ESC
-    //         break;
-    //
 
 
     //copy it back
@@ -536,7 +319,6 @@ void Stip::compute_derivatives(std::vector<cv::Mat>& m_st_volume, std::vector<cv
         Lt[t].at<float>(y,x)=slice.at<float>(y,t);
       }
     }
-    // Lt.push_back(It.clone());
   }
 
 
@@ -573,48 +355,9 @@ void Stip::compute_harris_responses(std::vector<cv::Mat>& harris_responses, std:
 
    harris_responses.resize(Lx2.size());
 
-   //Not needed if you do it in a vectorized
-  //  for (size_t i = 0; i < harris_responses.size(); i++) {
-  //    harris_responses[i]=cv::Mat(Lx2[0].rows,Lx2[0].cols,Lx2[0].depth());
-  //  }
-
-
-
    float k=0.005;
-  //  cv::Mat tmp1,tmp2;
    cv::Mat tmp1=cv::Mat::zeros(Lx2[0].rows,Lx2[0].cols,CV_32F);
    cv::Mat tmp2=cv::Mat::zeros(Lx2[0].rows,Lx2[0].cols,CV_32F);
-
-  //  for (size_t t = 0; t < Lx2.size(); t++) {
-  //    for (size_t y = 0; y < Lx2[0].rows; y++) {
-  //      for (size_t x = 0; x < Lx2[0].cols; x++) {
-   //
-  //        cv::Mat harris_matrix(3,3,CV_32F);
-   //
-  //        harris_matrix.at<float>(0,0)=Lx2[t].at<float>(y,x);
-  //        harris_matrix.at<float>(0,1)=LxLy[t].at<float>(y,x);
-  //        harris_matrix.at<float>(0,2)=LxLt[t].at<float>(y,x);
-   //
-  //        harris_matrix.at<float>(1,0)=LxLy[t].at<float>(y,x);
-  //        harris_matrix.at<float>(1,1)=Ly2[t].at<float>(y,x);
-  //        harris_matrix.at<float>(1,2)=LyLt[t].at<float>(y,x);
-   //
-  //        harris_matrix.at<float>(2,0)=LxLt[t].at<float>(y,x);
-  //        harris_matrix.at<float>(2,1)=LyLt[t].at<float>(y,x);
-  //        harris_matrix.at<float>(2,2)=Lt2[t].at<float>(y,x);
-   //
-  //        float determinant= cv::determinant(harris_matrix);
-   //
-  //        float trace=harris_matrix.at<float>(0,0) + harris_matrix.at<float>(1,1) + harris_matrix.at<float>(2,2);
-  //        float response= determinant -k* std::pow(trace,3);
-   //
-  //        harris_responses[t].at<float>(y,x)= response;
-   //
-  //      }
-  //    }
-  //  }
-
-
 
    for (size_t i = 0; i < harris_responses.size(); i++) {
      cv::multiply(Lx2[i], Ly2[i], tmp1);
@@ -651,25 +394,15 @@ void Stip::compute_harris_responses(std::vector<cv::Mat>& harris_responses, std:
     cv::subtract(tmp1,tmp2,harris_responses[i]);
    }
 
-
-
-
-
 }
 
 void Stip::compute_local_maxima(std::vector<cv::Mat>&  harris_responses,   std::vector<interest_point >& interest_points){
 
-  // int max_surpassed=0;
-  // float thresh=8000000.0f;
-  // float thresh=1e-5;
-  float thresh=6e-6;
-  // float thresh=0.0;
+  float thresh=6e-6;  //Need a small treshold so as to avoid eroneous interest points in regions which are static
 
   for (int t = 0; t < harris_responses.size(); t++) {
     for (int y = 0; y < harris_responses[0].rows; y++) {
       for (int x = 0; x < harris_responses[0].cols; x++) {
-
-        // std::cout << "computing points " << t << " " << y << " " << x << '\n';
 
         int neighbours_surpassed=0;
         //for points at position x,y,t check all the neighbours around it and if it is bigger than all of them then its an interest point
@@ -677,26 +410,9 @@ void Stip::compute_local_maxima(std::vector<cv::Mat>&  harris_responses,   std::
           for (int n_y = std::max(0,y-1); n_y < std::min(harris_responses[0].rows,y+2); n_y++){
             for (int n_x = std::max(0,x-1); n_x < std::min(harris_responses[0].cols,x+2); n_x++){
 
-              // std::cout << "computing neighbour " << n_t << " " << n_y << " " << n_x << '\n';
-
               if (n_t==t && n_y==y && n_x==x  ){
                 continue;
               }
-
-              // // detect local POSITIVE maxima
-              // if (harris_responses[t].at<float>(y,x)<=1e-7){
-              //   continue;
-              // }
-
-              // if (harris_responses[t].at<float>(y,x)<=1e-8){
-              //   continue;
-              // }
-
-              //with sobel it works pretty good
-              // if (harris_responses[t].at<float>(y,x)<=1e-4){
-              //   continue;
-              // }
-
 
               if (harris_responses[t].at<float>(y,x) > harris_responses[n_t].at<float>(n_y,n_x) + thresh){
                 neighbours_surpassed++;
@@ -706,23 +422,19 @@ void Stip::compute_local_maxima(std::vector<cv::Mat>&  harris_responses,   std::
           }
         }
 
-        // std::cout << "neighbours_surpassed " << neighbours_surpassed << '\n';
-        // harris_responses[t].at<float>(y,x)=0;
-
+        //If the point has a higher response than all the neighbours then it is a local maxima
         if (neighbours_surpassed==26){
           interest_point int_p;
           int_p.t=t;
           int_p.y=y;
           int_p.x=x;
           interest_points.push_back(int_p);
-          // harris_responses[t].at<float>(y,x)=neighbours_surpassed;
         }
 
       }
     }
   }
 
-  // std::cout << "max surpassed " << max_surpassed << '\n';
 
 }
 
@@ -739,7 +451,6 @@ void Stip::draw_interest_points (cv::Mat frame, std::vector<interest_point >& in
     }
   }
 
-  // std::cout << "drawn ips " << drawn_ips << '\n';
 
 
 }
@@ -774,9 +485,7 @@ void Stip::non_max_supress(std::vector<interest_point>& interest_points, int max
 
     //nms
     std::vector<interest_point> ip_nms;
-    // std::cout << "before rects " << ip_time.size() << '\n';
     nms(ip_time,ip_nms,0);
-    // std::cout << "after rects " << ip_nms.size() << '\n';
 
     //append the ones at this time to the new ones
     ip_spacial_supressed.insert(ip_spacial_supressed.end(), ip_nms.begin(), ip_nms.end());
@@ -808,9 +517,7 @@ void Stip::non_max_supress(std::vector<interest_point>& interest_points, int max
 
     //nms
     std::vector<interest_point> ip_nms;
-    // std::cout << "before rects " << ip_time.size() << '\n';
     nms(ip_x,ip_nms,0);
-    // std::cout << "after rects " << ip_nms.size() << '\n';
 
     //append the ones at this time to the new ones
     ip_complete_supressed.insert(ip_complete_supressed.end(), ip_nms.begin(), ip_nms.end());
@@ -925,18 +632,13 @@ void Stip::compute_descriptors(std::vector<interest_point>& interest_points, std
 
   std::cout << "compute_descriptor" << '\n';
 
-
-  //TODO put the k back to 9
   int k=9;
   int nbins_hog=4;
   float hist_range=180.0f;
 
-  //TODO read these values out of a struct called ST_vol or something similar
   int st_max_x=grad_orientations[0].cols;
   int st_max_y=grad_orientations[0].rows;
   int st_max_t=grad_orientations.size();
-
-  std::cout << "st size is " << st_max_x << " " << st_max_y << " " << st_max_t << '\n';
 
   int cell_per_vol_x=3;
   int cell_per_vol_y=3;
@@ -945,8 +647,6 @@ void Stip::compute_descriptors(std::vector<interest_point>& interest_points, std
 
   for (size_t i = 0; i < interest_points.size(); i++) {
 
-
-    //TODO I'm not sure if they are sigmas of standard deviations
     int vol_x_size=2*k*interest_points[i].sigma_spacial;
     int vol_y_size=2*k*interest_points[i].sigma_spacial;
     int vol_t_size=2*k*interest_points[i].sigma_temporal;
@@ -955,11 +655,8 @@ void Stip::compute_descriptors(std::vector<interest_point>& interest_points, std
     int cell_size_y=std::ceil(vol_y_size/(float)cell_per_vol_y);
     int cell_size_t=std::ceil(vol_t_size/(float)cell_per_vol_t);
 
-    // std::cout << "volume size " << vol_x_size << " " << vol_y_size << " " << vol_t_size << '\n';
-    // std::cout << "cell size " << cell_size_x << " " << cell_size_y << " " << cell_size_t << '\n';
 
-
-    //Borders
+    //if the cube arond the interest points is outside the spacial temporal volume we ignore it
     if (interest_points[i].x + vol_x_size/2 > st_max_x  || interest_points[i].x - vol_x_size/2 < 0 ){
       // std::cout << "outise x" << '\n';
       continue;
@@ -976,7 +673,7 @@ void Stip::compute_descriptors(std::vector<interest_point>& interest_points, std
 
     // std::cout << "points is insize the valid area" << '\n';
 
-    //make a vol of histograms
+    //make a vol of histograms. Volume will have dimensions 3x3x2, each element inside it being a histogrm
     utils::Array<Histogram, 3> hist_hog_vol;
     size_t size_hog_vol [3]= { cell_per_vol_t, cell_per_vol_y, cell_per_vol_x }; // Array dimensions
     hist_hog_vol.resize(size_hog_vol,Histogram(nbins_hog, hist_range));
@@ -988,6 +685,7 @@ void Stip::compute_descriptors(std::vector<interest_point>& interest_points, std
       for (size_t p_y = interest_points[i].y - vol_y_size/2; p_y < interest_points[i].y + vol_y_size/2; p_y++) {
         for (size_t p_t = interest_points[i].t - vol_t_size/2; p_t < interest_points[i].t + vol_t_size/2; p_t++) {
 
+          //get which cell of the 3x3x2 volume does this pixel belong to
           int cell_idx_x= (p_x- (interest_points[i].x - vol_x_size/2 ) )/cell_size_x;
           int cell_idx_y= (p_y- (interest_points[i].y - vol_y_size/2 ) )/cell_size_y;
           int cell_idx_t= (p_t- (interest_points[i].t - vol_t_size/2 ) )/cell_size_t;
@@ -997,10 +695,10 @@ void Stip::compute_descriptors(std::vector<interest_point>& interest_points, std
           float mag=grad_mags[p_t].at<float>(p_y,p_x);
           float orientation=grad_orientations[p_t].at<float>(p_y,p_x);
 
-          //make the orientation the same for oopsite directions
-          // orientation=orientation%180;
+          //make the orientation the same for oposite directions
           orientation = fmod(orientation,180);
 
+          //add the value to the corresponding histogram
           hist_hog_vol[cell_idx_t][cell_idx_y][cell_idx_x].add_val(orientation,mag);
 
 
@@ -1034,8 +732,6 @@ void Stip::compute_descriptors(std::vector<interest_point>& interest_points, std
           int cell_idx_y= (p_y- (interest_points[i].y - vol_y_size/2 ) )/cell_size_y;
           int cell_idx_t= (p_t- (interest_points[i].t - vol_t_size/2 ) )/cell_size_t;
 
-          // std::cout << "cell ids are" << cell_idx_t << " " << cell_idx_y << " " << cell_idx_t << '\n';
-
           float mag=flow_mags[p_t].at<float>(p_y,p_x);
           float orientation=flow_orientations[p_t].at<float>(p_y,p_x);
 
@@ -1043,14 +739,11 @@ void Stip::compute_descriptors(std::vector<interest_point>& interest_points, std
           orientation = fmod(orientation,180);
 
           if (mag<mag_thresh_low) {
-            // std::cout << "low mag" << '\n';
             hist_hof_low_mag_vol[cell_idx_t][cell_idx_y][cell_idx_x].add_val(orientation,mag);
           }else{
-            // std::cout << "high mag" << '\n';
             hist_hof_vol[cell_idx_t][cell_idx_y][cell_idx_x].add_val(orientation,mag);
 
           }
-
 
 
         }
@@ -1058,27 +751,8 @@ void Stip::compute_descriptors(std::vector<interest_point>& interest_points, std
     }
 
 
-    //TODO concatenate the two histogram volumes cell by cell and therefore still end up with a volume of 3x3x2
 
-
-    /*
-    auto ItA = VectorA.begin();
-  auto ItB = VectorB.begin();
-
-  while(ItA != VectorA.end() || ItB != VectorB.end())
-  {
-      if(ItA != VectorA.end())
-      {
-          ++ItA;
-      }
-      if(ItB != VectorB.end())
-      {
-          ++ItB;
-      }
-  }
-      */
-
-    //concatenate the the low threshold with the high threshold hof
+    //concatenate the the low threshold with the high threshold HOF
     for (size_t t = 0; t < cell_per_vol_t; t++) {
       for (size_t y = 0; y < cell_per_vol_y; y++) {
         for (size_t x = 0; x < cell_per_vol_x; x++) {
@@ -1146,14 +820,10 @@ void Stip::read_features_from_file(std::string descriptor_file_path, Math::Matri
   vector_dimensions=atoi(tokens[1].data());
   nr_videos=atoi(tokens[2].data());
 
-  std::cout << "nr_vectors" << nr_vectors << '\n';
-  std::cout << "vector_dimensions" << vector_dimensions << '\n';
-  std::cout << "nr_videos" << nr_videos << '\n';
-  //
-  // // Math::Matrix<Float> features(vector_dimensions,nr_vectors);
+  // std::cout << "nr_vectors" << nr_vectors << '\n';
+  // std::cout << "vector_dimensions" << vector_dimensions << '\n';
+  // std::cout << "nr_videos" << nr_videos << '\n';
 
-  // features= Math::Matrix<Float> (vector_dimensions,nr_vectors);
-  // features.resize(1,1);
   features.resize(vector_dimensions,nr_vectors);
 
   int sample=0;
@@ -1198,11 +868,7 @@ void Stip::read_features_per_video_from_file(std::string descriptor_file_path, s
   std::cout << "nr_vectors" << nr_vectors << '\n';
   std::cout << "vector_dimensions" << vector_dimensions << '\n';
   std::cout << "nr_videos" << nr_videos << '\n';
-  //
-  // // Math::Matrix<Float> features(vector_dimensions,nr_vectors);
 
-  // features= Math::Matrix<Float> (vector_dimensions,nr_vectors);
-  // features.resize(1,1);
   features_per_video.resize(nr_videos);
 
   std::vector<std::vector<float>>features_video;
@@ -1241,7 +907,6 @@ void Stip::read_features_per_video_from_file(std::string descriptor_file_path, s
       tmp.push_back(atof(tokens[i].data()));
     }
     features_video.push_back(tmp);
-    // nr_features_in_video++;
   }
   desc_file.close();
 }
